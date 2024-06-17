@@ -47,7 +47,8 @@ class Clicker:
         tap_data = self._get_tap_data()
         response = self.requester.clicker_tap(json.dumps(tap_data))
 
-        self.clicker_user = response['clickerUser']
+        if 'clickerUser' in response:
+            self.clicker_user = response['clickerUser']
 
     def _check_boost_cooldown(self):
         id_to_find = config.BOOST_ID
