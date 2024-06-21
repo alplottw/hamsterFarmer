@@ -1,3 +1,4 @@
+import random
 import threading
 
 import bot
@@ -10,8 +11,12 @@ def start(account):
 
 
 if __name__ == '__main__':
-    accounts = read_account_from_file()
-    for account in accounts:
-        thread = threading.Thread(target=start, args=(account,))
-        thread.start()
+    while True:
+        accounts = read_account_from_file()
+        random.shuffle(accounts)
+        for account in accounts:
+            thread = threading.Thread(target=start, args=(account,))
+            thread.start()
+            delay(5, 10)
+
         delay(config.MIN_DELAY, config.MAX_DELAY)

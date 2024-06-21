@@ -35,9 +35,7 @@ class Clicker:
 
         self.count += data['count'] * self.clicker_user['earnPerTap']
 
-        text = f"{get_date_time()} | id: {self.account_id} | clicked: {self.count}"
-        log(self.account_id, text)
-        print(text)
+        log(self.account_id, {"availableTaps": data['availableTaps'], "count": data['count'] * self.clicker_user['earnPerTap']})
 
         return data
 
@@ -46,6 +44,20 @@ class Clicker:
 
         tap_data = self._get_tap_data()
         response = self.requester.clicker_tap(json.dumps(tap_data))
+
+        if 'clickerUser' in response:
+            self.clicker_user = response['clickerUser']
+
+    def _tap_once(self):
+        delay(5, 10)
+
+        data = {
+            "availableTaps": self.clicker_user['availableTaps'],
+            "count": 1,
+            "timestamp": get_timestamp(),
+        }
+
+        response = self.requester.clicker_tap(json.dumps(data))
 
         if 'clickerUser' in response:
             self.clicker_user = response['clickerUser']
@@ -65,6 +77,30 @@ class Clicker:
         }
         response = self.requester.clicker_buy_boost(json.dumps(data))
         self.clicker_user = response['clickerUser']
+
+    def cipher_is_claim(self, clicker_config):
+        return clicker_config['dailyCipher']['isClaimed']
+
+    def cipher_claim(self):
+        click_count = 0
+
+        for passw in config.DAILY_CIPHER_TAPS:
+            click_count += len(passw)
+
+        for i in range(click_count):
+            self._tap_once()
+
+        data = {
+            "cipher": config.DAILY_CIPHER
+        }
+
+        response = self.requester.claim_daily_cipher(json.dumps(data))
+
+        if response['dailyCipher']['isClaimed']:
+            return True
+        return False
+
+
 
 
 def find_by_id(data, id):

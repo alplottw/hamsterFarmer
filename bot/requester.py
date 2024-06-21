@@ -1,4 +1,8 @@
+import json
+
 import requests
+
+from bot import config
 
 
 class Requester:
@@ -26,7 +30,7 @@ class Requester:
 
         try:
             response = requests.get(url, proxies=proxies)
-            print("IP Address:", response.json()['origin'])
+            # print("IP Address:", response.json()['origin'])
         except requests.exceptions.ProxyError as e:
             print("Proxy error:", e)
         except requests.exceptions.RequestException as e:
@@ -49,7 +53,12 @@ class Requester:
             if response.status_code == 200:
                 return response.json()
             else:
-                return f"Error: {response.status_code} - {response.text}"
+                text = f"Error: {response.status_code} - {response.text}"
+                with open(f"./logs/errors.txt", 'a+') as file:
+                    file.seek(0, 0)
+                    file.write(f"{text}\n")
+                return text
+
         except requests.exceptions.RequestException as e:
             return f"Request error: {e}"
 
@@ -89,5 +98,20 @@ class Requester:
     def clicker_buy_upgrade(self, data):
         self.headers['Content-Type'] = 'application/json'
         response = self._send_request('POST', '/clicker/buy-upgrade', data)
+        del self.headers['Content-Type']
+        return response
+
+    def claim_daily_combo(self):
+        return self._send_request('POST', '/clicker/claim-daily-combo')
+
+    def claim_daily_cipher(self, data):
+        self.headers['Content-Type'] = 'application/json'
+        response = self._send_request('POST', '/clicker/claim-daily-cipher', data)
+        del self.headers['Content-Type']
+        return response
+
+    def claim_daily_reward(self):
+        self.headers['Content-Type'] = 'application/json'
+        response = self._send_request('POST', '/clicker/check-task', json.dumps({"taskId": config.DAILY_REWARD_ID}))
         del self.headers['Content-Type']
         return response
